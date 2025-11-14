@@ -1,0 +1,7 @@
+camera_node:
+  ros__parameters:
+    camera_index: 0  # USB camera device index
+    frame_rate: 30  # frames per second
+    image_width: 640
+    image_height: 480
+    camera_name: "lynx_camera"

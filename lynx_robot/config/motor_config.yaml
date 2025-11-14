@@ -1,0 +1,9 @@
+motor_controller:
+  ros__parameters:
+    wheel_base: 0.3  # meters between front and rear wheels
+    wheel_radius: 0.05  # meters
+    max_speed: 1.0  # m/s
+    max_steering_angle: 0.785  # radians (~45 degrees)
+    motor_pin_left: 17  # GPIO pin for left motor
+    motor_pin_right: 18  # GPIO pin for right motor
+    steering_pin: 27  # GPIO pin for steering servo

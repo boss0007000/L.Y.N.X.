@@ -1,0 +1,5 @@
+object_detector:
+  ros__parameters:
+    detection_method: "color"  # color, contour, or cascade
+    min_object_area: 1000  # minimum area in pixels
+    publish_debug_image: true
