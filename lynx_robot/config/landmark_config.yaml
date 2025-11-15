@@ -1,0 +1,5 @@
+landmark_detector:
+  ros__parameters:
+    marker_type: "aruco"  # aruco, qr, or corner
+    aruco_dict: "DICT_4X4_50"
+    publish_debug_image: true

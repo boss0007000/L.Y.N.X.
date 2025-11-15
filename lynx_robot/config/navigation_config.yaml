@@ -1,0 +1,7 @@
+navigation_controller:
+  ros__parameters:
+    max_linear_velocity: 0.5  # m/s
+    max_angular_velocity: 1.0  # rad/s
+    goal_tolerance: 0.1  # meters
+    control_frequency: 10.0  # Hz
+    lookahead_distance: 0.3  # meters for pure pursuit controller

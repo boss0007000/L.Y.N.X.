@@ -1,0 +1,4 @@
+path_planner:
+  ros__parameters:
+    planning_method: "astar"  # A* algorithm
+    goal_tolerance: 0.2  # meters
