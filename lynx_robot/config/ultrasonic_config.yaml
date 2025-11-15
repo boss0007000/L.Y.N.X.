@@ -1,0 +1,25 @@
+# Ultrasonic Sensor Configuration
+
+ultrasonic_sensor:
+  ros__parameters:
+    # GPIO pins for front sensor
+    front_trig_pin: 23
+    front_echo_pin: 24
+    
+    # GPIO pins for back sensor
+    back_trig_pin: 25
+    back_echo_pin: 8
+    
+    # GPIO pins for left sensor
+    left_trig_pin: 7
+    left_echo_pin: 1
+    
+    # GPIO pins for right sensor
+    right_trig_pin: 12
+    right_echo_pin: 16
+    
+    # Publishing rate in Hz
+    publish_rate: 10.0
+    
+    # Simulation mode (true for testing without hardware)
+    simulation_mode: false

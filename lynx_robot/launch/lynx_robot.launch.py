@@ -111,7 +111,19 @@ def generate_launch_description():
         name='waypoint_selector',
         output='screen',
         parameters=[
-            {'use_interactive_mode': True}
+            {'use_interactive_mode': True},
+            {'use_visual_map': True},
+            {'startup_delay': 15.0}
+        ]
+    )
+    
+    ultrasonic_sensor = Node(
+        package='lynx_robot',
+        executable='ultrasonic_sensor',
+        name='ultrasonic_sensor',
+        output='screen',
+        parameters=[
+            os.path.join(pkg_dir, 'config', 'ultrasonic_config.yaml')
         ]
     )
     
@@ -125,5 +137,6 @@ def generate_launch_description():
         map_parser,
         path_planner,
         navigation_controller,
+        ultrasonic_sensor,
         waypoint_selector
     ])
