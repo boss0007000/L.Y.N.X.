@@ -1,0 +1,43 @@
+# Ultrasonic Sensor Configuration (HC-SR04)
+# HC-SR04 Specifications:
+# - Operating Voltage: 5V DC
+# - Range: 2cm to 400cm (0.02m to 4.0m)
+# - Accuracy: ±3mm
+# - Measuring angle: 15 degrees
+
+ultrasonic_sensor:
+  ros__parameters:
+    # GPIO pins for front sensor
+    front_trig_pin: 23
+    front_echo_pin: 24
+    
+    # GPIO pins for back sensor
+    back_trig_pin: 25
+    back_echo_pin: 8
+    
+    # GPIO pins for left sensor
+    left_trig_pin: 7
+    left_echo_pin: 1
+    
+    # GPIO pins for right sensor
+    right_trig_pin: 12
+    right_echo_pin: 16
+    
+    # Publishing rate in Hz
+    publish_rate: 10.0
+    
+    # Simulation mode (true for testing without hardware)
+    simulation_mode: false
+    
+    # Object detection settings
+    object_detection_enabled: true
+    
+    # Detection threshold - objects closer than this distance are detected (meters)
+    detection_threshold: 0.5
+    
+    # HC-SR04 sensor limits (meters)
+    min_detection_distance: 0.02  # 2cm minimum range
+    max_detection_distance: 4.0   # 400cm maximum range
+    
+    # Obstacle warning distance - warn about objects this close (meters)
+    obstacle_warning_distance: 0.3  # 30cm

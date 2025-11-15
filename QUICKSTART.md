@@ -39,6 +39,15 @@ Connect your hardware according to this diagram:
 - Right Motor: GPIO 18
 - Steering Servo: GPIO 27
 
+**Ultrasonic Sensors (HC-SR04):**
+- Front Sensor: Trig GPIO 23, Echo GPIO 24
+- Back Sensor: Trig GPIO 25, Echo GPIO 8
+- Left Sensor: Trig GPIO 7, Echo GPIO 1
+- Right Sensor: Trig GPIO 12, Echo GPIO 16
+- Operating Voltage: 5V DC
+- Range: 2cm to 400cm
+- Used for: Position detection AND object detection
+
 **Camera:**
 - USB Camera: Any USB port
 
@@ -66,6 +75,26 @@ camera_node:
     image_width: 640
     image_height: 480
 ```
+
+**Ultrasonic Sensor Configuration** (`ultrasonic_config.yaml`):
+```yaml
+ultrasonic_sensor:
+  ros__parameters:
+    # GPIO pins for sensors
+    front_trig_pin: 23
+    front_echo_pin: 24
+    # ... (see file for all pins)
+    simulation_mode: false  # Set to true for testing without hardware
+    
+    # Object detection settings
+    object_detection_enabled: true
+    detection_threshold: 0.5  # Objects closer than 50cm are detected
+    obstacle_warning_distance: 0.3  # Warn about objects within 30cm
+```
+
+**Waypoint Selector Configuration** (in launch file):
+- `use_visual_map`: true/false - Enable visual map display
+- `startup_delay`: 15.0 - Delay in seconds before robot starts (default: 15)
 
 ### 3. Test Camera
 
@@ -117,7 +146,24 @@ You should see output from all nodes starting up.
 
 ### 2. Set Start and Goal Points
 
-In the terminal, you'll see the waypoint selector interface:
+The system now features a **Visual Map-Based Start Position Selector**!
+
+When you start the system, a graphical map will be displayed. Here's how to use it:
+
+**Visual Mode (Default):**
+
+1. A window will open showing your map with a grid overlay
+2. Click on the map to select your robot's starting position
+3. You'll be prompted to choose which coordinate is fixed:
+   - Type 'x' if the X coordinate should be fixed (robot will determine Y using sensors)
+   - Type 'y' if the Y coordinate should be fixed (robot will determine X using sensors)
+4. The robot will use its ultrasonic sensors to determine the non-fixed coordinate
+5. You can adjust the startup delay (default: 15 seconds)
+6. After the countdown, the robot is ready to receive goal commands
+
+**Text Mode (Fallback):**
+
+If visual mode is unavailable, you'll see the text interface:
 
 ```
 Commands:
@@ -164,10 +210,22 @@ source ~/ros2_ws/install/setup.bash
 ros2 topic echo /navigation_status
 ```
 
-**Terminal 4 - Monitor detections:**
+**Terminal 4 - Monitor camera detections:**
 ```bash
 source ~/ros2_ws/install/setup.bash
 ros2 topic echo /detected_objects
+```
+
+**Terminal 5 - Monitor ultrasonic object detection:**
+```bash
+source ~/ros2_ws/install/setup.bash
+ros2 topic echo /ultrasonic_objects
+```
+
+**Terminal 6 - Monitor obstacle warnings:**
+```bash
+source ~/ros2_ws/install/setup.bash
+ros2 topic echo /obstacle_warning
 ```
 
 ## Testing Individual Components
@@ -193,6 +251,33 @@ ros2 run lynx_robot camera_node
 
 # In another terminal, view images
 ros2 run rqt_image_view rqt_image_view
+```
+
+### Test Ultrasonic Sensors with Object Detection
+
+```bash
+# Start ultrasonic sensor node
+ros2 run lynx_robot ultrasonic_sensor
+
+# In another terminal, monitor sensor readings
+ros2 topic echo /ultrasonic_distances
+# Should show [front, back, left, right] distances in meters
+
+# Monitor object detections
+ros2 topic echo /ultrasonic_objects
+# Will show JSON data when objects are detected within threshold
+
+# Monitor obstacle warnings
+ros2 topic echo /obstacle_warning
+# Will show 'true' when obstacles are very close (< 30cm)
+
+# Or view JSON format sensor info
+ros2 topic echo /ultrasonic_info
+
+# Test object detection by placing objects at different distances:
+# - Place object > 50cm away: No detection
+# - Place object at 30-50cm: Object detected
+# - Place object < 30cm: Obstacle warning activated
 ```
 
 ### Test Object Detection

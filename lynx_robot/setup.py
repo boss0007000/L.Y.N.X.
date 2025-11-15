@@ -33,6 +33,7 @@ setup(
             'path_planner = lynx_robot.path_planner:main',
             'navigation_controller = lynx_robot.navigation_controller:main',
             'waypoint_selector = lynx_robot.waypoint_selector:main',
+            'ultrasonic_sensor = lynx_robot.ultrasonic_sensor:main',
         ],
     },
 )
