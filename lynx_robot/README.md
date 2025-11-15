@@ -34,13 +34,34 @@ The system consists of the following ROS 2 nodes:
 - 2x DC Motors with motor driver
 - Servo motor for steering
 - Motor driver board (e.g., L298N)
+- 4x HC-SR04 Ultrasonic sensors
 - Power supply (7.4V LiPo recommended)
 
 ### GPIO Pin Configuration (Default)
 
-- Left Motor: GPIO 17
-- Right Motor: GPIO 18
-- Steering Servo: GPIO 27
+**Complete GPIO Pin Assignment (BCM Numbering):**
+
+| GPIO Pin | Function | Hardware Component | Notes |
+|----------|----------|-------------------|-------|
+| GPIO 1   | Echo     | Ultrasonic Sensor (Left) | Use voltage divider (5V→3.3V) |
+| GPIO 7   | Trigger  | Ultrasonic Sensor (Left) | |
+| GPIO 8   | Echo     | Ultrasonic Sensor (Back) | Use voltage divider (5V→3.3V) |
+| GPIO 12  | Trigger  | Ultrasonic Sensor (Right) | |
+| GPIO 16  | Echo     | Ultrasonic Sensor (Right) | Use voltage divider (5V→3.3V) |
+| GPIO 17  | PWM      | Left Motor (via motor driver) | Hardware PWM capable |
+| GPIO 18  | PWM      | Right Motor (via motor driver) | Hardware PWM capable |
+| GPIO 23  | Trigger  | Ultrasonic Sensor (Front) | |
+| GPIO 24  | Echo     | Ultrasonic Sensor (Front) | Use voltage divider (5V→3.3V) |
+| GPIO 25  | Trigger  | Ultrasonic Sensor (Back) | |
+| GPIO 27  | PWM      | Steering Servo Motor | Hardware PWM for servo |
+
+**Configuration Files:**
+- Motors: `config/motor_config.yaml`
+- Ultrasonic Sensors: `config/ultrasonic_config.yaml`
+
+**⚠️ Important:** HC-SR04 ECHO pins output 5V. Use voltage dividers (1kΩ and 2kΩ resistors) to reduce to 3.3V before connecting to Raspberry Pi GPIO pins.
+
+For detailed wiring diagrams, see [HARDWARE.md](../HARDWARE.md) in the repository root.
 
 ## Software Requirements
 

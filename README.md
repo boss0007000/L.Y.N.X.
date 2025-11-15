@@ -53,6 +53,12 @@ See the [lynx_robot README](lynx_robot/README.md) for detailed installation and 
 - 4x HC-SR04 Ultrasonic sensors (front, back, left, right)
 - Power supply (7.4V for motors, 5V for Raspberry Pi)
 
+**GPIO Pin Requirements:** 11 pins total (BCM mode)
+- Motors: GPIO 17, 18, 27
+- Ultrasonic Sensors: GPIO 1, 7, 8, 12, 16, 23, 24, 25
+
+📋 **See [HARDWARE.md](HARDWARE.md) for complete wiring diagrams and GPIO pin assignments**
+
 **Software:**
 - ROS 2 Humble or later
 - Python 3.8+

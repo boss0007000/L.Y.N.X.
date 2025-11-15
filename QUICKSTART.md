@@ -47,6 +47,7 @@ Connect your hardware according to this diagram:
 - Operating Voltage: 5V DC
 - Range: 2cm to 400cm
 - Used for: Position detection AND object detection
+- ⚠️ **Important:** Use voltage divider on ECHO pins (5V → 3.3V) to protect Raspberry Pi GPIO
 
 **Camera:**
 - USB Camera: Any USB port
@@ -54,6 +55,8 @@ Connect your hardware according to this diagram:
 **Power:**
 - Motor Driver: 7.4V (or appropriate voltage)
 - Raspberry Pi: 5V USB-C
+
+📋 **For detailed wiring diagrams with voltage divider circuits, see [HARDWARE.md](HARDWARE.md)**
 
 ### 2. Configure the Robot
 

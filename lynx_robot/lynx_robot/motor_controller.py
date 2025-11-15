@@ -48,17 +48,48 @@ class MotorController(Node):
             10
         )
         
-        # Initialize GPIO (placeholder - will work on Raspberry Pi)
+        # Get GPIO pin numbers
+        self.motor_pin_left = self.get_parameter('motor_pin_left').value
+        self.motor_pin_right = self.get_parameter('motor_pin_right').value
+        self.steering_pin = self.get_parameter('steering_pin').value
+        
+        # Initialize GPIO
+        self.gpio_available = False
+        self.pwm_left = None
+        self.pwm_right = None
+        self.pwm_steering = None
+        
         try:
             import RPi.GPIO as GPIO
+            self.GPIO = GPIO
             GPIO.setmode(GPIO.BCM)
+            
+            # Setup motor pins as PWM outputs
+            GPIO.setup(self.motor_pin_left, GPIO.OUT)
+            GPIO.setup(self.motor_pin_right, GPIO.OUT)
+            GPIO.setup(self.steering_pin, GPIO.OUT)
+            
+            # Initialize PWM for motor speed control (1000 Hz)
+            self.pwm_left = GPIO.PWM(self.motor_pin_left, 1000)
+            self.pwm_right = GPIO.PWM(self.motor_pin_right, 1000)
+            self.pwm_left.start(0)  # Start with 0% duty cycle (stopped)
+            self.pwm_right.start(0)
+            
+            # Initialize PWM for servo (50 Hz for standard servos)
+            self.pwm_steering = GPIO.PWM(self.steering_pin, 50)
+            self.pwm_steering.start(7.5)  # Start at center position (7.5% duty cycle)
+            
             self.gpio_available = True
-            self.get_logger().info('GPIO initialized successfully')
-        except (ImportError, RuntimeError):
+            self.get_logger().info(
+                f'GPIO initialized: Motors on pins {self.motor_pin_left}, {self.motor_pin_right}; '
+                f'Servo on pin {self.steering_pin}'
+            )
+        except (ImportError, RuntimeError) as e:
             self.gpio_available = False
-            self.get_logger().warn('GPIO not available - running in simulation mode')
+            self.get_logger().warn(f'GPIO not available - running in simulation mode: {e}')
         
         self.get_logger().info('Motor Controller initialized')
+
 
     def cmd_vel_callback(self, msg):
         """Convert Twist commands to motor velocities.
@@ -110,10 +141,57 @@ class MotorController(Node):
             right_speed: Right motor speed (rad/s)
             steering_angle: Steering angle (radians)
         """
-        # This is a placeholder for actual GPIO control
-        # On Raspberry Pi, you would use PWM to control motor speed
-        # and servo control for steering
-        pass
+        if not self.gpio_available or not self.pwm_left or not self.pwm_right or not self.pwm_steering:
+            return
+        
+        # Convert angular velocity (rad/s) to duty cycle (0-100%)
+        # Assuming max_speed corresponds to 100% duty cycle
+        max_angular_speed = self.max_speed / self.wheel_radius
+        
+        # Calculate duty cycles (0-100%)
+        left_duty = abs(left_speed) / max_angular_speed * 100.0
+        right_duty = abs(right_speed) / max_angular_speed * 100.0
+        
+        # Limit duty cycles
+        left_duty = max(0.0, min(100.0, left_duty))
+        right_duty = max(0.0, min(100.0, right_duty))
+        
+        # Set motor PWM duty cycles
+        try:
+            self.pwm_left.ChangeDutyCycle(left_duty)
+            self.pwm_right.ChangeDutyCycle(right_duty)
+            
+            # Convert steering angle to servo duty cycle
+            # Standard servo: 1ms (5% @ 50Hz) = -90°, 1.5ms (7.5%) = 0°, 2ms (10%) = 90°
+            # Map steering_angle (-max_steering_angle to +max_steering_angle) to duty cycle (5% to 10%)
+            # Center at 7.5% (neutral position)
+            angle_normalized = steering_angle / self.max_steering_angle  # Range: -1 to 1
+            servo_duty = 7.5 + (angle_normalized * 2.5)  # Range: 5% to 10%
+            servo_duty = max(5.0, min(10.0, servo_duty))  # Safety limits
+            
+            self.pwm_steering.ChangeDutyCycle(servo_duty)
+            
+        except Exception as e:
+            self.get_logger().error(f'Error controlling motors: {str(e)}')
+    
+    def destroy_node(self):
+        """Clean up GPIO resources."""
+        if self.gpio_available:
+            try:
+                # Stop all PWM
+                if self.pwm_left:
+                    self.pwm_left.stop()
+                if self.pwm_right:
+                    self.pwm_right.stop()
+                if self.pwm_steering:
+                    self.pwm_steering.stop()
+                # Cleanup GPIO
+                self.GPIO.cleanup()
+                self.get_logger().info('GPIO cleanup complete')
+            except Exception as e:
+                self.get_logger().error(f'Error during GPIO cleanup: {str(e)}')
+        
+        super().destroy_node()
 
 
 def main(args=None):
