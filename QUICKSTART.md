@@ -39,11 +39,14 @@ Connect your hardware according to this diagram:
 - Right Motor: GPIO 18
 - Steering Servo: GPIO 27
 
-**Ultrasonic Sensors:**
+**Ultrasonic Sensors (HC-SR04):**
 - Front Sensor: Trig GPIO 23, Echo GPIO 24
 - Back Sensor: Trig GPIO 25, Echo GPIO 8
 - Left Sensor: Trig GPIO 7, Echo GPIO 1
 - Right Sensor: Trig GPIO 12, Echo GPIO 16
+- Operating Voltage: 5V DC
+- Range: 2cm to 400cm
+- Used for: Position detection AND object detection
 
 **Camera:**
 - USB Camera: Any USB port
@@ -82,6 +85,11 @@ ultrasonic_sensor:
     front_echo_pin: 24
     # ... (see file for all pins)
     simulation_mode: false  # Set to true for testing without hardware
+    
+    # Object detection settings
+    object_detection_enabled: true
+    detection_threshold: 0.5  # Objects closer than 50cm are detected
+    obstacle_warning_distance: 0.3  # Warn about objects within 30cm
 ```
 
 **Waypoint Selector Configuration** (in launch file):
@@ -202,10 +210,22 @@ source ~/ros2_ws/install/setup.bash
 ros2 topic echo /navigation_status
 ```
 
-**Terminal 4 - Monitor detections:**
+**Terminal 4 - Monitor camera detections:**
 ```bash
 source ~/ros2_ws/install/setup.bash
 ros2 topic echo /detected_objects
+```
+
+**Terminal 5 - Monitor ultrasonic object detection:**
+```bash
+source ~/ros2_ws/install/setup.bash
+ros2 topic echo /ultrasonic_objects
+```
+
+**Terminal 6 - Monitor obstacle warnings:**
+```bash
+source ~/ros2_ws/install/setup.bash
+ros2 topic echo /obstacle_warning
 ```
 
 ## Testing Individual Components
@@ -233,7 +253,7 @@ ros2 run lynx_robot camera_node
 ros2 run rqt_image_view rqt_image_view
 ```
 
-### Test Ultrasonic Sensors
+### Test Ultrasonic Sensors with Object Detection
 
 ```bash
 # Start ultrasonic sensor node
@@ -243,8 +263,21 @@ ros2 run lynx_robot ultrasonic_sensor
 ros2 topic echo /ultrasonic_distances
 # Should show [front, back, left, right] distances in meters
 
-# Or view JSON format
+# Monitor object detections
+ros2 topic echo /ultrasonic_objects
+# Will show JSON data when objects are detected within threshold
+
+# Monitor obstacle warnings
+ros2 topic echo /obstacle_warning
+# Will show 'true' when obstacles are very close (< 30cm)
+
+# Or view JSON format sensor info
 ros2 topic echo /ultrasonic_info
+
+# Test object detection by placing objects at different distances:
+# - Place object > 50cm away: No detection
+# - Place object at 30-50cm: Object detected
+# - Place object < 30cm: Obstacle warning activated
 ```
 
 ### Test Object Detection
