@@ -33,6 +33,25 @@ This guide provides detailed instructions for assembling and wiring your L.Y.N.X
 
 ### Raspberry Pi GPIO Connections
 
+**GPIO Pin Assignment Summary (BCM Numbering):**
+
+| GPIO Pin | Function | Hardware Component | Pin Type | Notes |
+|----------|----------|-------------------|----------|-------|
+| GPIO 1   | Echo     | Ultrasonic Sensor (Left) | Input | Use voltage divider (5V→3.3V) |
+| GPIO 7   | Trigger  | Ultrasonic Sensor (Left) | Output | Safe at 3.3V |
+| GPIO 8   | Echo     | Ultrasonic Sensor (Back) | Input | Use voltage divider (5V→3.3V) |
+| GPIO 12  | Trigger  | Ultrasonic Sensor (Right) | Output | Safe at 3.3V |
+| GPIO 16  | Echo     | Ultrasonic Sensor (Right) | Input | Use voltage divider (5V→3.3V) |
+| GPIO 17  | Control  | Left Motor (via motor driver) | Output | PWM capable |
+| GPIO 18  | Control  | Right Motor (via motor driver) | Output | PWM capable |
+| GPIO 23  | Trigger  | Ultrasonic Sensor (Front) | Output | Safe at 3.3V |
+| GPIO 24  | Echo     | Ultrasonic Sensor (Front) | Input | Use voltage divider (5V→3.3V) |
+| GPIO 25  | Trigger  | Ultrasonic Sensor (Back) | Output | Safe at 3.3V |
+| GPIO 27  | PWM      | Steering Servo Motor | Output | PWM for servo control |
+
+**Total GPIO Pins Used: 11**
+**Available GPIO Pins: ~15+ remaining for future expansion**
+
 ```
 Raspberry Pi 4 GPIO Layout (BCM numbering):
 
@@ -41,21 +60,23 @@ Raspberry Pi 4 GPIO Layout (BCM numbering):
                   GPIO3  [5] [6]  GND
                   GPIO4  [7] [8]  GPIO14
                     GND  [9] [10] GPIO15
-                 GPIO17 [11] [12] GPIO18
-                 GPIO27 [13] [14] GND
-                 GPIO22 [15] [16] GPIO23
-                    3V3 [17] [18] GPIO24
+            *--> GPIO17 [11] [12] GPIO18 <--* Motors
+            *--> GPIO27 [13] [14] GND         (Servo)
+                 GPIO22 [15] [16] GPIO23 <--* Ultrasonic
+                    3V3 [17] [18] GPIO24 <--* (Front)
                  GPIO10 [19] [20] GND
-                  GPIO9 [21] [22] GPIO25
-                 GPIO11 [23] [24] GPIO8
-                    GND [25] [26] GPIO7
-                  GPIO0 [27] [28] GPIO1
+                  GPIO9 [21] [22] GPIO25 <--* Ultrasonic
+                 GPIO11 [23] [24] GPIO8  <--* (Back)
+                    GND [25] [26] GPIO7  <--* Ultrasonic
+                  GPIO0 [27] [28] GPIO1  <--* (Left)
                   GPIO5 [29] [30] GND
-                  GPIO6 [31] [32] GPIO12
-                 GPIO13 [33] [34] GND
-                 GPIO19 [35] [36] GPIO16
+                  GPIO6 [31] [32] GPIO12 <--* Ultrasonic
+                 GPIO13 [33] [34] GND         (Right)
+                 GPIO19 [35] [36] GPIO16 <--*
                  GPIO26 [37] [38] GPIO20
                     GND [39] [40] GPIO21
+
+Legend: *--> = Used by L.Y.N.X. robot
 ```
 
 ### Motor Driver Connections (L298N Example)
@@ -81,9 +102,19 @@ GPIO 18    ------>   IN4
 GND        ------>   GND (common ground)
 ```
 
-**Enable Pins (PWM):**
-- Connect ENA and ENB to 5V for full speed
-- Or connect to PWM-capable GPIO pins for speed control
+**Enable Pins (PWM for Speed Control):**
+- For basic operation: Connect ENA and ENB to 5V for full speed
+- For PWM speed control (recommended):
+  - ENA → GPIO 17 (controls left motor speed via PWM)
+  - ENB → GPIO 18 (controls right motor speed via PWM)
+- GPIO 17 and GPIO 18 are hardware PWM capable pins
+
+**Alternative Wiring for Full PWM Control:**
+If using separate GPIO pins for direction and speed:
+- Direction pins: IN1, IN2 (left), IN3, IN4 (right) to other GPIO pins
+- Speed pins: ENA to GPIO 17 (PWM), ENB to GPIO 18 (PWM)
+
+The current implementation uses GPIO 17 and 18 directly for motor control.
 
 ### Servo Motor Connection (Steering)
 
@@ -94,6 +125,65 @@ GPIO 27    -------->  Signal (Yellow/White)
 5V         -------->  VCC (Red)
 GND        -------->  GND (Brown/Black)
 ```
+
+### Ultrasonic Sensors Connection (HC-SR04)
+
+The robot uses 4 HC-SR04 ultrasonic sensors for proximity detection and obstacle avoidance.
+
+**HC-SR04 Specifications:**
+- Operating Voltage: 5V DC
+- Range: 2cm to 400cm (0.02m to 4.0m)
+- Accuracy: ±3mm
+- Measuring angle: 15 degrees
+
+**Front Sensor:**
+```
+Raspberry Pi          HC-SR04 (Front)
+-----------          ----------------
+GPIO 23    -------->  TRIG
+GPIO 24    <--------  ECHO
+5V         -------->  VCC
+GND        -------->  GND
+```
+
+**Back Sensor:**
+```
+Raspberry Pi          HC-SR04 (Back)
+-----------          ---------------
+GPIO 25    -------->  TRIG
+GPIO 8     <--------  ECHO
+5V         -------->  VCC
+GND        -------->  GND
+```
+
+**Left Sensor:**
+```
+Raspberry Pi          HC-SR04 (Left)
+-----------          ---------------
+GPIO 7     -------->  TRIG
+GPIO 1     <--------  ECHO
+5V         -------->  VCC
+GND        -------->  GND
+```
+
+**Right Sensor:**
+```
+Raspberry Pi          HC-SR04 (Right)
+-----------          ----------------
+GPIO 12    -------->  TRIG
+GPIO 16    <--------  ECHO
+5V         -------->  VCC
+GND        -------->  GND
+```
+
+**Important Notes:**
+- HC-SR04 ECHO pins output 5V, which can damage Raspberry Pi GPIO pins (3.3V tolerant)
+- **Use a voltage divider** on ECHO pins to reduce 5V to 3.3V:
+  - R1 = 1kΩ (between ECHO and GPIO)
+  - R2 = 2kΩ (between GPIO and GND)
+  - This creates a voltage divider: 5V × (2kΩ / (1kΩ + 2kΩ)) = 3.33V
+- Alternatively, use a level shifter module
+- TRIG pins are safe as Pi outputs 3.3V which HC-SR04 accepts
 
 ### USB Camera Connection
 
