@@ -57,6 +57,11 @@ class UltrasonicSensor(Node):
         self.publish_rate = self.get_parameter('publish_rate').value
         self.simulation_mode = self.get_parameter('simulation_mode').value
         
+        # Force simulation mode if GPIO is not available
+        if not GPIO_AVAILABLE:
+            self.simulation_mode = True
+            self.get_logger().info('GPIO not available - forcing simulation mode')
+        
         # Object detection parameters
         self.object_detection_enabled = self.get_parameter('object_detection_enabled').value
         self.detection_threshold = self.get_parameter('detection_threshold').value
