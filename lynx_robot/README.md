@@ -388,3 +388,11 @@ For questions and support:
 - ROS 2 Community
 - OpenCV Project
 - Raspberry Pi Foundation
+- # 1. (Already done) Import the ROS 2 key.
+# sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc -o /usr/share/keyrings/ros-archive-keyring.gpg
+
+# 2. Add the ROS 2 apt repository to your sources
+echo "deb [signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+
+# 3. Update apt package index
+sudo apt update
